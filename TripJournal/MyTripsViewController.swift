@@ -20,11 +20,11 @@ class MyTripsViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func AddTrip(sender: AnyObject) {
-        performSegueWithIdentifier("AddTrip", sender: self)
+    @IBAction func AddTrip(_ sender: AnyObject) {
+        performSegue(withIdentifier: "AddTrip", sender: self)
     }
 
-    @IBAction func loginPressed(sender: UIButton) {
+    @IBAction func loginPressed(_ sender: UIButton) {
         InstagramClient.sharedInstance().authenticateWithViewController(self) { (success, errorString) in
             performUIUpdatesOnMain {
                 if success {
@@ -40,9 +40,9 @@ class MyTripsViewController: UIViewController {
     
     //MARK: Login
     
-    private func completeLogin() {
-        let vc = storyboard!.instantiateViewControllerWithIdentifier("SetTripDatesViewController") 
-        presentViewController(vc, animated: true, completion: nil)
+    fileprivate func completeLogin() {
+        let vc = storyboard!.instantiateViewController(withIdentifier: "SetTripDatesViewController") 
+        present(vc, animated: true, completion: nil)
     
     }
     

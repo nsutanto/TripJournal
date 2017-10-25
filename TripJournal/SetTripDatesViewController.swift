@@ -21,49 +21,49 @@ class SetTripDatesViewController : UIViewController {
     
     //MARK - View LifeCycle
     override func viewDidLoad() {
-        nextButton.enabled = false
+        nextButton.isEnabled = false
     }
     
-    @IBAction func addTitle(sender: AnyObject) {
+    @IBAction func addTitle(_ sender: AnyObject) {
         enableButton()
     }
     
-    @IBAction func cancel(sender: AnyObject) {
-        dismissViewControllerAnimated(true, completion: nil)
+    @IBAction func cancel(_ sender: AnyObject) {
+        dismiss(animated: true, completion: nil)
     }
     
-    @IBAction func addStartDate(sender: UITextField) {
+    @IBAction func addStartDate(_ sender: UITextField) {
         resignFirstResponder()
         let datePickerView:UIDatePicker = UIDatePicker()
-        datePickerView.datePickerMode = UIDatePickerMode.Date
+        datePickerView.datePickerMode = UIDatePickerMode.date
         sender.inputView = datePickerView
-        datePickerView.addTarget(self, action: #selector(self.startDatePickerValueChanged), forControlEvents: UIControlEvents.ValueChanged)
+        datePickerView.addTarget(self, action: #selector(self.startDatePickerValueChanged), for: UIControlEvents.valueChanged)
         enableButton()
 
     }
     
-    @IBAction func addEndDate(sender: UITextField) {
+    @IBAction func addEndDate(_ sender: UITextField) {
         let datePickerView:UIDatePicker = UIDatePicker()
-        datePickerView.datePickerMode = UIDatePickerMode.Date
+        datePickerView.datePickerMode = UIDatePickerMode.date
         sender.inputView = datePickerView
-        datePickerView.addTarget(self, action: #selector(self.endDatePickerValueChanged), forControlEvents: UIControlEvents.ValueChanged)
+        datePickerView.addTarget(self, action: #selector(self.endDatePickerValueChanged), for: UIControlEvents.valueChanged)
 
     }
     
-    func startDatePickerValueChanged(sender: UIDatePicker, textFieldToChange: UITextField) {
-        let dateFormatter = NSDateFormatter()
-        dateFormatter.dateStyle = NSDateFormatterStyle.MediumStyle
-        dateFormatter.timeStyle = NSDateFormatterStyle.NoStyle
-        startDateTextField.text = dateFormatter.stringFromDate(sender.date)
+    func startDatePickerValueChanged(_ sender: UIDatePicker, textFieldToChange: UITextField) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = DateFormatter.Style.medium
+        dateFormatter.timeStyle = DateFormatter.Style.none
+        startDateTextField.text = dateFormatter.string(from: sender.date)
         enableButton()
 
     }
     
-    func endDatePickerValueChanged(sender: UIDatePicker, textFieldToChange: UITextField) {
-        let dateFormatter = NSDateFormatter()
-        dateFormatter.dateStyle = NSDateFormatterStyle.MediumStyle
-        dateFormatter.timeStyle = NSDateFormatterStyle.NoStyle
-        endDateTextField.text = dateFormatter.stringFromDate(sender.date)
+    func endDatePickerValueChanged(_ sender: UIDatePicker, textFieldToChange: UITextField) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = DateFormatter.Style.medium
+        dateFormatter.timeStyle = DateFormatter.Style.none
+        endDateTextField.text = dateFormatter.string(from: sender.date)
         enableButton()
 
     }
@@ -74,12 +74,12 @@ class SetTripDatesViewController : UIViewController {
     
     func enableButton(){
         if titleTextField.text != "" && startDateTextField.text != "" && endDateTextField.text != "" {
-            nextButton.enabled = true
+            nextButton.isEnabled = true
         }
     }
   
-    @IBAction func nextButtonPressed(sender: AnyObject) {
-        performSegueWithIdentifier("LoginSegue", sender: self)
+    @IBAction func nextButtonPressed(_ sender: AnyObject) {
+        performSegue(withIdentifier: "LoginSegue", sender: self)
     }
     
     }
