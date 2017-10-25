@@ -12,7 +12,7 @@ import Foundation
 
 class InstagramClient : NSObject {
 
-    var session = NSURLSession.sharedSession()
+    var session = URLSession.shared
     
     var code: String? = nil
     
@@ -31,22 +31,23 @@ class InstagramClient : NSObject {
     }
     
     //MARK: GET
-    func taskForGETMethod(method: String, var parameters: [String: AnyObject], completionHandlerForGET: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func taskForGETMethod(_ method: String, parameters: [String: AnyObject], completionHandlerForGET: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+        var parameters = parameters
     
         //Set Parameters
-        parameters[ParameterKeys.clientId] = Constants.ClientId
-        parameters[ParameterKeys.redirectURI] = Constants.RedirectURI
-        parameters[ParameterKeys.responseType] = ParameterValues.code
+        parameters[ParameterKeys.clientId] = Constants.ClientId as AnyObject
+        parameters[ParameterKeys.redirectURI] = Constants.RedirectURI as AnyObject
+        parameters[ParameterKeys.responseType] = ParameterValues.code as AnyObject
         
         var url = instagramURLFromParameters(parameters, withPathExtension: method)
         print("Line 42, REQUEST URL: ", url)
         
         //Build URL, Configure request
-        let request = NSMutableURLRequest(URL: url)
+        let request = NSMutableURLRequest(url: url)
         
         //Make the Request
-        let task = session.dataTaskWithRequest(request) { (data, response, error) in
-            func sendError(error: String) {
+        let task = session.dataTask(with: request, completionHandler: { (data, response, error) in
+            func sendError(_ error: String) {
                 print(error)
                 let userInfo = [NSLocalizedDescriptionKey : error]
                 completionHandlerForGET(result: nil, error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
@@ -59,7 +60,7 @@ class InstagramClient : NSObject {
             }
             
             /* GUARD: Did we get a successful 2XX response? */
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
                 sendError("Your request returned a status code other than 2xx!")
                 return
             }
@@ -72,7 +73,7 @@ class InstagramClient : NSObject {
             
             /* 5/6. Parse the data and use the data (happens in completion handler) */
             self.convertDataWithCompletionHandler(data, completionHandlerForConvertData: completionHandlerForGET)
-        }
+        }) 
         
         /* 7. Start the request */
         task.resume()
@@ -83,23 +84,24 @@ class InstagramClient : NSObject {
     
     //MARK: POST
     
-    func taskForPostMethod(method: String, var parameters: [String: AnyObject], jsonBody: String, completionHandlerForPOST: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func taskForPostMethod(_ method: String, parameters: [String: AnyObject], jsonBody: String, completionHandlerForPOST: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+        var parameters = parameters
         //Set Parameters
         //Build URL, Configure Request
         //var url = instagramURLFromParameters(parameters, withPathExtension: method)
         var urlString = "https://api.instagram.com/oauth/access_token"
         print("Line 90 REQUEST URL: ", urlString)
-        var url = NSURL(string: urlString)
-        let request = NSMutableURLRequest(URL: url!)
-        request.HTTPMethod = "POST"
+        var url = URL(string: urlString)
+        let request = NSMutableURLRequest(url: url!)
+        request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.HTTPBody = jsonBody.dataUsingEncoding(NSUTF8StringEncoding)
+        request.httpBody = jsonBody.data(using: String.Encoding.utf8)
         print("Line 95 REQUEST: ", request)
         //Make Request
-        let task = session.dataTaskWithRequest(request) {(data, response, error) in
+        let task = session.dataTask(with: request, completionHandler: {(data, response, error) in
         
-            func sendError(error: String) {
+            func sendError(_ error: String) {
                 print(error)
                 let userInfo = [NSLocalizedDescriptionKey : error]
                 completionHandlerForPOST(result: nil, error: NSError(domain: "taskForPOSTMethod", code: 1, userInfo: userInfo))
@@ -112,8 +114,8 @@ class InstagramClient : NSObject {
             }
             
             /* GUARD: Did we get a successful 2XX response? */
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
-                let statusCodeResponse = (response as? NSHTTPURLResponse)?.statusCode
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
+                let statusCodeResponse = (response as? HTTPURLResponse)?.statusCode
                 print("STATUS CODE: ", statusCodeResponse)
                 sendError("Your request returned a status code other than 2xx!")
                 return
@@ -127,7 +129,7 @@ class InstagramClient : NSObject {
             
             /* 5/6. Parse the data and use the data (happens in completion handler) */
             self.convertDataWithCompletionHandler(data, completionHandlerForConvertData: completionHandlerForPOST)
-        }
+        }) 
         
         /* 7. Start the request */
         task.resume()
@@ -140,32 +142,32 @@ class InstagramClient : NSObject {
     //MARK: Helpers
     
     //given RAW JSON, return a usable Foundation object
-    private func convertDataWithCompletionHandler(data: NSData, completionHandlerForConvertData: (result: AnyObject!, error: NSError?) -> Void) {
+    fileprivate func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
         var parsedResult: AnyObject!
         do {
-            parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
         } catch {
             let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON: '\(data)'"]
-            completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+            completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         
-        completionHandlerForConvertData(result: parsedResult, error: nil)
+        completionHandlerForConvertData(parsedResult, nil)
     }
     
     //create a URL from parameters
-    private func instagramURLFromParameters(parameters: [String: AnyObject], withPathExtension: String? = nil) -> NSURL {
+    fileprivate func instagramURLFromParameters(_ parameters: [String: AnyObject], withPathExtension: String? = nil) -> URL {
         
-        let components = NSURLComponents()
+        var components = URLComponents()
         components.scheme = InstagramClient.Constants.ApiScheme
         components.host = InstagramClient.Constants.ApiHost
         components.path = InstagramClient.Constants.ApiPath + (withPathExtension ?? "")
-        components.queryItems = [NSURLQueryItem]()
+        components.queryItems = [URLQueryItem]()
 
         for (key, value) in parameters {
-            let queryItem = NSURLQueryItem(name: key, value: "\(value)")
+            let queryItem = URLQueryItem(name: key, value: "\(value)")
             components.queryItems!.append(queryItem)
         }
         
-        return components.URL!
+        return components.url!
     }
 }

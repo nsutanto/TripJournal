@@ -16,7 +16,7 @@ extension InstagramClient {
     //Step 2: Receive the redirect from Instagram
     //Step 3: Request the Access Token
     
-    func authenticateWithViewController(hostViewController: UIViewController, completionHandlerForAuth: (success: Bool, errorString: String?) -> Void) {
+    func authenticateWithViewController(_ hostViewController: UIViewController, completionHandlerForAuth: @escaping (_ success: Bool, _ errorString: String?) -> Void) {
         
         getCode(hostViewController) { (success, errorString) in
             
@@ -28,23 +28,23 @@ extension InstagramClient {
                     if (success) {
                         //save access token
                     } else {
-                        completionHandlerForAuth(success: success, errorString: errorString)
+                        completionHandlerForAuth(success, errorString)
                     }
                 }
                 } else {
-                    completionHandlerForAuth(success: success, errorString: errorString)
+                    completionHandlerForAuth(success, errorString)
                 }
             }
         }
         
-    private func getCode(hostViewController: UIViewController, completionHandlerForCode: (success: Bool, errorString: String?) -> Void) {
+    fileprivate func getCode(_ hostViewController: UIViewController, completionHandlerForCode: @escaping (_ success: Bool, _ errorString: String?) -> Void) {
         let parameters = [String: AnyObject]()
         
-        let webAuthViewController = hostViewController.storyboard!.instantiateViewControllerWithIdentifier("InstagramAuthViewController") as! InstagramAuthViewController
+        let webAuthViewController = hostViewController.storyboard!.instantiateViewController(withIdentifier: "InstagramAuthViewController") as! InstagramAuthViewController
         
         let urlString = "https://api.instagram.com/oauth/authorize/?client_id=60e0fe0b74e849ec83f81f18b781b88f&redirect_uri=https://www.instagram.com/&response_type=token"
-        let url = NSURL(string: urlString)
-        let request = NSURLRequest(URL: url!)
+        let url = URL(string: urlString)
+        let request = URLRequest(url: url!)
 
         webAuthViewController.urlRequest = request
         webAuthViewController.completionHandlerForView = completionHandlerForCode
@@ -53,7 +53,7 @@ extension InstagramClient {
         webAuthNavigationController.pushViewController(webAuthViewController, animated: false)
         
         performUIUpdatesOnMain {
-            hostViewController.presentViewController(webAuthNavigationController, animated: true, completion: nil)
+            hostViewController.present(webAuthNavigationController, animated: true, completion: nil)
         }
         
         
@@ -77,7 +77,7 @@ extension InstagramClient {
 //        }
    // }
     
-    private func loginWithCode(hostViewController: UIViewController, completionHandlerForLogin:(success: Bool, errorString: String?) -> Void) {
+    fileprivate func loginWithCode(_ hostViewController: UIViewController, completionHandlerForLogin:(_ success: Bool, _ errorString: String?) -> Void) {
         
         
     }

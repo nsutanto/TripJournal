@@ -11,10 +11,10 @@ import UIKit
 class InstagramAuthViewController: UIViewController {
     
 //  let urlString = "https://api.instagram.com/oauth/authorize/?client_id=60e0fe0b74e849ec83f81f18b781b88f&redirect_uri=https://www.instagram.com/&response_type=code"
-    var urlRequest: NSURLRequest? = nil //this is passed in when view controller is instantiated
+    var urlRequest: URLRequest? = nil //this is passed in when view controller is instantiated
     var requestToken: String? = nil
     var accessToken: String! = nil
-    var completionHandlerForView: ((success: Bool, errorString: String?) -> Void)? = nil
+    var completionHandlerForView: ((_ success: Bool, _ errorString: String?) -> Void)? = nil
     
     //MARK: - Outlets
 
@@ -30,10 +30,10 @@ class InstagramAuthViewController: UIViewController {
         webView.delegate = self
         
         navigationItem.title = "Instagram Auth"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .Plain, target: self, action: #selector(InstagramAuthViewController.cancelAuth))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(InstagramAuthViewController.cancelAuth))
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         
         if let urlRequest = urlRequest {
@@ -44,7 +44,7 @@ class InstagramAuthViewController: UIViewController {
     //MARK: - Cancel Auth Flow
     
     func cancelAuth() {
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
 }
 
@@ -52,15 +52,15 @@ class InstagramAuthViewController: UIViewController {
 
 extension InstagramAuthViewController : UIWebViewDelegate {
     
-    func webView(webView: UIWebView, shouldStartLoadWithRequest request: NSURLRequest, navigationType: UIWebViewNavigationType) -> Bool {
-        let url = request.URL
+    func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
+        let url = request.url
         var key: String
         var value: String
 
         if (url!.query != nil) {
             print("URL.Query", url!.query)
-            key = (url!.query?.componentsSeparatedByString("=").first)!
-            value = (url!.query?.componentsSeparatedByString("=").last)!
+            key = (url!.query?.components(separatedBy: "=").first)!
+            value = (url!.query?.components(separatedBy: "=").last)!
             print("Key, value: ", key, value)
             
             if key == "code" {
@@ -87,11 +87,11 @@ extension InstagramAuthViewController : UIWebViewDelegate {
 
             
         } else if (url!.fragment != nil) {
-            key = (url?.fragment?.componentsSeparatedByString("=").first)!
-            value = (url?.fragment?.componentsSeparatedByString("=").last)!
+            key = (url?.fragment?.components(separatedBy: "=").first)!
+            value = (url?.fragment?.components(separatedBy: "=").last)!
             print("Key, value: ", key, value)
             if key == "access_token" {
-                accessToken = value as! String
+                accessToken = value 
                 print("ACCESS TOKEN: ", accessToken)
             }
 
@@ -100,17 +100,17 @@ extension InstagramAuthViewController : UIWebViewDelegate {
         return true
     }
     
-    func webViewDidFinishLoad(webView: UIWebView) {
-        var urlString = ("https://www.instagram.com#access_token=\(accessToken)")
+    func webViewDidFinishLoad(_ webView: UIWebView) {
+        let urlString = ("https://www.instagram.com#access_token=\(accessToken)")
         print("Redirect URL String + Access Token: ", urlString)
-        print("webView.request!.URL!.absoluteString: ", webView.request!.URL!.absoluteString)
-        if webView.request!.URL!.absoluteString == InstagramClient.Constants.RedirectURI {
-            dismissViewControllerAnimated(true) {
-                self.completionHandlerForView!(success: true, errorString: nil)
+        print("webView.request!.URL!.absoluteString: ", webView.request!.url!.absoluteString)
+        if webView.request!.url!.absoluteString == InstagramClient.Constants.RedirectURI {
+            dismiss(animated: true) {
+                self.completionHandlerForView!(true, nil)
             }
-        } else if webView.request!.URL!.absoluteString == "" {
-            dismissViewControllerAnimated(true) {
-                self.completionHandlerForView!(success: true, errorString: nil)
+        } else if webView.request!.url!.absoluteString == "" {
+            dismiss(animated: true) {
+                self.completionHandlerForView!(true, nil)
             }
         }
     }
